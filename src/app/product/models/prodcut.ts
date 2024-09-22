@@ -22,6 +22,24 @@ const productSchema = new mongoose.Schema<IProduct>({
     type: String, 
     required: false,
   },
+  colors: {
+    type: [String], // Array of strings for colors
+    required: false,
+  },
+  sale: {
+    discountPercentage: {
+      type: Number, // Sale discount percentage
+      required: false,
+    },
+    saleEndDate: {
+      type: Date, // Optional sale end date
+      required: false,
+    },
+  },
+  thumbnails: {
+    type: [String], // Array of strings for thumbnails (image URLs or paths)
+    required: false,
+  }
 });
 
 const Product = mongoose.model<IProduct>('Product', productSchema);
