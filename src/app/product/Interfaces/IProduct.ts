@@ -7,6 +7,7 @@ export interface IProduct extends Document {
     category: mongoose.Schema.Types.ObjectId;
     image?: string;
     colors?: string[]; // Array of strings representing available colors
+    quantity?: number;
     sale?: {
         discountPercentage: number;
         saleEndDate?: Date; // Optional sale end date

@@ -42,6 +42,7 @@ export const createProduct = async (req: Request, res: Response) => {
       name,
       description,
       price,
+      quantity: 0,
       category: category._id,
       colors,
       sale,
