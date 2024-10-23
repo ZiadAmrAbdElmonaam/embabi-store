@@ -23,7 +23,27 @@ const productSchema = new mongoose.Schema<IProduct>({
     ref: 'Category',
   },
   image: {
-    type: String, 
+    type: String,
+    required: false,
+  },
+  colors: [
+    {
+      colorName: { type: String, required: true },  // Name of the color
+      quantity: { type: Number, required: true, min: 0 },  // Quantity for that color
+    }
+  ], 
+  sale: {
+    discountPercentage: {
+      type: Number,  // Sale discount percentage
+      required: false,
+    },
+    saleEndDate: {
+      type: Date,  // Optional sale end date
+      required: false,
+    },
+  },
+  thumbnails: {
+    type: [String],  // Array of strings for thumbnails (image URLs or paths)
     required: false,
   },
 });
