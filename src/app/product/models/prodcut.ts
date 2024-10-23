@@ -22,6 +22,12 @@ const productSchema = new mongoose.Schema<IProduct>({
     type: String, 
     required: false,
   },
+  colors: [
+    {
+      colorName: { type: String, required: true },
+      quantity: { type: Number, required: true, min: 0 },
+    }
+  ] 
 });
 
 const Product = mongoose.model<IProduct>('Product', productSchema);

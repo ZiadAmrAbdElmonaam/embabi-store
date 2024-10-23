@@ -6,4 +6,10 @@ export interface IProduct extends Document {
     price: number;
     category: mongoose.Schema.Types.ObjectId;
     image?: string;
+    colors: IColor[];
   }
+  
+export interface IColor {
+  colorName: string;
+  quantity: number;
+}
