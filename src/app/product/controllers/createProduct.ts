@@ -20,8 +20,8 @@ const upload = multer({ storage });
 // Create Product Controller
 export const createProduct = async (req: Request, res: Response) => {
   try {
-    const { name, description, price, colors, sale, thumbnails } = req.body; // Remove categoryId from body
-    const { categoryId } = req.params; // Get categoryId from the URL parameters
+    const { name, description, price, colors, sale, thumbnails } = req.body;
+    const { categoryId } = req.params;
 
     // Validate categoryId
     if (!mongoose.isValidObjectId(categoryId)) {
@@ -34,20 +34,44 @@ export const createProduct = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Category not found' });
     }
 
-    // Get the image path (multer already handled the upload)
+    // Convert `colors` quantities to numbers
+    const parsedColors = colors.map((color: any) => ({
+      colorName: color.colorName,
+      quantity: Number(color.quantity), // Convert quantity to a number
+    }));
+
+    // Validate colors array
+    for (const color of parsedColors) {
+      if (!color.colorName || typeof color.quantity !== 'number' || color.quantity < 0) {
+        return res.status(400).json({ error: 'Invalid color or quantity' });
+      }
+    }
+
+    // Handle image upload (if provided)
     const image = req.file ? `/uploads/${req.file.filename}` : undefined;
+
+    // Parse sale details if provided
+    const parsedSale = sale
+      ? {
+          discountPercentage: Number(sale.discountPercentage), // Convert discountPercentage to a number
+          saleEndDate: sale.saleEndDate ? new Date(sale.saleEndDate) : undefined, // Convert saleEndDate to a Date
+        }
+      : undefined;
+
+    // Parse thumbnails (remove extra quotes if necessary)
+    const parsedThumbnails = thumbnails.map((thumbnail: string) => thumbnail.replace(/"/g, ''));
 
     // Create the product
     const product = new Product({
       name,
       description,
-      price,
+      price: Number(price), // Convert price to a number
       quantity: 0,
       category: category._id,
-      colors,
-      sale,
-      thumbnails,
-      image,  // Store the uploaded image path
+      colors: parsedColors,
+      sale: parsedSale,
+      thumbnails: parsedThumbnails,
+      image,
     });
 
     await product.save();
@@ -62,3 +86,4 @@ export const createProduct = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Error creating product' });
   }
 };
+
