@@ -5,6 +5,8 @@ import cors from 'cors';
 import categoryRoutes from './app/category/routes/categoryRoutes';
 import productRoutes from './app/product/routes/productRoutes';
 import authRoutes from './app/user/routes/authRoutes';
+import orderRoutes from './app/order/routes/orderRoutes';
+import path from 'path';
 
 
 dotenv.config();
@@ -34,6 +36,8 @@ const startServer = async () => {
 // Use Category and Product Routes
 app.use('/api/categories', categoryRoutes); // Routes for categories
 app.use('/api/products', productRoutes); // Routes for products
+app.use('/api/orders',orderRoutes) // Routes for orders
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/auth',authRoutes)
 
 // Start the server

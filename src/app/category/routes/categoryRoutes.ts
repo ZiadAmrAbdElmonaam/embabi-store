@@ -1,6 +1,10 @@
 import { Router } from 'express';
-import { createCategory, deleteCategory, getAllCategories, getCategory, updateCategory } from '../controllers/categoryController';
 import { isAdmin } from '../../user/helpers/authMiddleware';
+import { createCategory } from '../controllers/createCategory';
+import { deleteCategory } from '../controllers/deleteCategory';
+import { getAllCategories } from '../controllers/getAllCategories';
+import { getCategory } from '../controllers/getCategory';
+import { updateCategory } from '../controllers/updateCategory';
 
 
 const router = Router();
