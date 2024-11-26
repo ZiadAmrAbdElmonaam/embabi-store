@@ -23,27 +23,30 @@ const productSchema = new mongoose.Schema<IProduct>({
     ref: 'Category',
   },
   image: {
-    type: String, 
+    type: String,
     required: false,
   },
-  colors: {
-    type: [String], // Array of strings for colors
-    required: false,
-  },
+  colors: [
+    {
+      colorName: { type: String, required: true },
+      quantity: { type: Number, required: true, min: 0 },
+      _id: false // This prevents MongoDB from adding _id to each color subdocument
+    }
+  ],
   sale: {
     discountPercentage: {
-      type: Number, // Sale discount percentage
+      type: Number,
       required: false,
     },
     saleEndDate: {
-      type: Date, // Optional sale end date
+      type: Date,
       required: false,
     },
   },
   thumbnails: {
-    type: [String], // Array of strings for thumbnails (image URLs or paths)
+    type: [String],
     required: false,
-  }
+  },
 });
 
 const Product = mongoose.model<IProduct>('Product', productSchema);

@@ -8,6 +8,7 @@ import { getProduct } from '../controllers/getProduct';
 import { getProductsForCategory } from '../controllers/getProductsForCategory';
 import multer from 'multer';
 import path from 'path';
+import { updateProduct } from '../controllers/updateProduct';
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -23,6 +24,7 @@ const router = Router();
 
 // Product Routes
 router.post('/:categoryId', validateObjectId, isAdmin, upload.single('image'),createProduct); 
+router.put('/:categoryId/:productId', validateObjectId, isAdmin, upload.single('image'), updateProduct);
 router.get('/:id', getProduct);
 router.get('/category/:categoryId', validateObjectId, getProductsForCategory); 
 router.get('/', getAllProducts); 

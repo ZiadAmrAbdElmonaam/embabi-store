@@ -6,11 +6,19 @@ export interface IProduct extends Document {
     price: number;
     category: mongoose.Schema.Types.ObjectId;
     image?: string;
-    colors?: string[]; // Array of strings representing available colors
+    colors: IColor[];
     quantity?: number;
     sale?: {
         discountPercentage: number;
-        saleEndDate?: Date; // Optional sale end date
+        saleEndDate?: Date; 
     };
-    thumbnails?: string[]; // Array of strings representing image URLs or paths
+    thumbnails?: string[]; 
+  }
+  
+export interface IColor {
+  colorName: string;
+  quantity: number;
 }
+
+  
+
