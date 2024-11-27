@@ -1,4 +1,4 @@
-import Joi from 'joi';
+import Joi from "joi";
 
 export const createOrderSchema = Joi.object({
   items: Joi.array()
@@ -6,6 +6,15 @@ export const createOrderSchema = Joi.object({
       Joi.object({
         product: Joi.string().required(),
         quantity: Joi.number().min(1).required(),
+        colors: Joi.array()
+          .items(
+            Joi.object({
+              colorName: Joi.string().required(),
+              quantity: Joi.number().min(1).required(),
+            })
+          )
+          .min(1)
+          .required(),
       })
     )
     .min(1)

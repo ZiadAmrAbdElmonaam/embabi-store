@@ -9,7 +9,7 @@ export interface IOrder extends Document {
   user: mongoose.Schema.Types.ObjectId;
   items: IOrderItem[];
   totalPrice: number;
-  status: 'pending' | 'completed' | 'cancelled';
+  status: 'pending' | 'ordered' | 'prepared'|'shipped'|'cancelled'|'delevired';
   address: string;
   email: string;
   name: string;
@@ -17,11 +17,10 @@ export interface IOrder extends Document {
   updatedAt: Date;
 }
 
-// Create Order Schema
 const orderSchema = new mongoose.Schema<IOrder>({
   orderId: {
     type: Number,
-    unique: true,  // Ensure the orderId is unique
+    unique: true,
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,
@@ -40,6 +39,13 @@ const orderSchema = new mongoose.Schema<IOrder>({
         required: true,
         default: 1,
       },
+      colors: [
+        {
+          colorName: { type: String, required: true },
+          quantity: { type: Number, required: true },
+          _id: false,
+        },
+      ],
     },
   ],
   totalPrice: {
@@ -64,7 +70,7 @@ const orderSchema = new mongoose.Schema<IOrder>({
     required: true,
   },
 }, {
-  timestamps: true,  // Automatically creates `createdAt` and `updatedAt`
+  timestamps: true,
 });
 
 // Pre-save hook to auto-increment orderId

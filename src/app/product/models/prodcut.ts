@@ -47,6 +47,7 @@ const productSchema = new mongoose.Schema<IProduct>({
     type: [String],
     required: false,
   },
+  
 });
 
 const Product = mongoose.model<IProduct>('Product', productSchema);

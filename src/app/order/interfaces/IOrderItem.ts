@@ -9,7 +9,7 @@ export interface IOrder extends Document {
   user: mongoose.Schema.Types.ObjectId;
   items: IOrderItem[];
   totalPrice: number;
-  status: 'pending' | 'completed' | 'cancelled';
+  status: 'pending' | 'ordered' | 'prepared'|'shipped'|'cancelled'|'delevired';
   address: string; 
   email: string;    
   name: string;     
