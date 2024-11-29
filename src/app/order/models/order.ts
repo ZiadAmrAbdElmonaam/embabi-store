@@ -1,21 +1,6 @@
 import mongoose, { Document } from 'mongoose';
-import { IOrderItem } from '../interfaces/IOrderItem';
+import { IOrderItem, IOrder } from '../interfaces/IOrderItem';
 import Counter from './counter';
-
-
-// Define the Order interface
-export interface IOrder extends Document {
-  orderId: number; // This will auto-increment
-  user: mongoose.Schema.Types.ObjectId;
-  items: IOrderItem[];
-  totalPrice: number;
-  status: 'pending' | 'ordered' | 'prepared'|'shipped'|'cancelled'|'delevired';
-  address: string;
-  email: string;
-  name: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 const orderSchema = new mongoose.Schema<IOrder>({
   orderId: {
@@ -27,34 +12,30 @@ const orderSchema = new mongoose.Schema<IOrder>({
     ref: 'User',
     required: true,
   },
-  items: [
-    {
-      product: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product',
-        required: true,
-      },
-      quantity: {
-        type: Number,
-        required: true,
-        default: 1,
-      },
-      colors: [
-        {
-          colorName: { type: String, required: true },
-          quantity: { type: Number, required: true },
-          _id: false,
-        },
-      ],
+  items: [{
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product',
+      required: true,
     },
-  ],
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    colors: {
+      type: String,
+      required: true,
+    },
+  }],
   totalPrice: {
     type: Number,
     required: true,
+    min: 0,
   },
   status: {
     type: String,
-    enum: ['pending', 'completed', 'cancelled'],
+    enum: ['pending', 'ordered', 'prepared', 'shipped', 'cancelled', 'delivered'],
     default: 'pending',
   },
   address: {
@@ -74,21 +55,17 @@ const orderSchema = new mongoose.Schema<IOrder>({
 });
 
 // Pre-save hook to auto-increment orderId
-orderSchema.pre('save', async function (next) {
-  const order = this as IOrder;
-
-  // Only increment if it's a new order
-  if (order.isNew) {
+orderSchema.pre('save', async function(next) {
+  if (this.isNew) {
     const counter = await Counter.findOneAndUpdate(
-      { id: 'orderId' },  // Find the counter by 'orderId'
-      { $inc: { seq: 1 } },  // Increment the sequence by 1
-      { new: true, upsert: true }  // Create the counter document if it doesn't exist
+      { id: 'orderId' },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
     );
-    order.orderId = counter!.seq;  // Assign the incremented sequence to orderId
+    this.orderId = counter!.seq;
   }
   next();
 });
 
-// Create and export the Order model
 const Order = mongoose.model<IOrder>('Order', orderSchema);
 export default Order;

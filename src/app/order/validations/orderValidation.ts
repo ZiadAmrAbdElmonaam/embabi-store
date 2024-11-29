@@ -6,15 +6,7 @@ export const createOrderSchema = Joi.object({
       Joi.object({
         product: Joi.string().required(),
         quantity: Joi.number().min(1).required(),
-        colors: Joi.array()
-          .items(
-            Joi.object({
-              colorName: Joi.string().required(),
-              quantity: Joi.number().min(1).required(),
-            })
-          )
-          .min(1)
-          .required(),
+        colors: Joi.string().required(),
       })
     )
     .min(1)
@@ -23,4 +15,10 @@ export const createOrderSchema = Joi.object({
   address: Joi.string().required(),
   email: Joi.string().email().required(),
   name: Joi.string().required(),
+});
+
+export const updateOrderStatusSchema = Joi.object({
+  status: Joi.string()
+    .valid('pending', 'ordered', 'prepared', 'shipped', 'cancelled', 'delivered')
+    .required(),
 });
