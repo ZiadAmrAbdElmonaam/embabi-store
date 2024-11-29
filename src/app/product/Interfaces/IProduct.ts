@@ -10,7 +10,7 @@ export interface IProduct extends Document {
     quantity?: number;
     sale?: {
         discountPercentage: number;
-        saleEndDate?: Date; 
+        saleEndDate?: string; 
     };
     thumbnails?: string[]; 
   }

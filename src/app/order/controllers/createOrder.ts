@@ -1,16 +1,16 @@
 import { Request, Response } from 'express';
 import Order from '../models/order';
 import jwt from 'jsonwebtoken';
-import { createOrderSchema } from '../validations/orderValidation'; // Assuming you're using Joi for validation
+import { createOrderSchema } from '../validations/orderValidation';
 import Product from '../../product/models/prodcut';
 
 export const createOrder = async (req: Request, res: Response) => {
-  const { error } = createOrderSchema.validate(req.body);
-  if (error) {
-    return res.status(400).json({ error: error.details[0].message });
-  }
-
   try {
+    const { error } = createOrderSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+
     const { items, totalPrice, address, email, name } = req.body;
     const token = req.headers.authorization?.split(' ')[1];
 
@@ -20,29 +20,32 @@ export const createOrder = async (req: Request, res: Response) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { userId: string };
 
+    // Validate and update product inventory
     for (const item of items) {
       const product = await Product.findById(item.product);
       if (!product) {
-        return res.status(404).json({ message: `Product with ID ${item.product} not found` });
+        return res.status(404).json({ 
+          message: `Product with ID ${item.product} not found` 
+        });
       }
 
-      for (const color of item.colors) {
-        const productColor = product.colors.find(c => c.colorName === color.colorName);
-        if (!productColor) {
-          return res.status(400).json({ message: `Color ${color.colorName} not available for product ${product.name}` });
-        }
-
-        if (productColor.quantity < color.quantity) {
-          return res.status(400).json({
-            message: `Insufficient stock for color ${color.colorName} of product ${product.name}. Available: ${productColor.quantity}`,
-          });
-        }
-
-        // Deduct the quantity
-        productColor.quantity -= color.quantity;
+      // Validate color and quantity
+      const productColor = product.colors.find(c => c.colorName === item.colors);
+      if (!productColor) {
+        return res.status(400).json({ 
+          message: `Color ${item.colors} not available for product ${product.name}` 
+        });
       }
 
-      await product.save(); // Save the updated product
+      if (productColor.quantity < item.quantity) {
+        return res.status(400).json({
+          message: `Insufficient stock for color ${item.colors} of product ${product.name}. Available: ${productColor.quantity}`,
+        });
+      }
+
+      // Update inventory
+      productColor.quantity -= item.quantity;
+      await product.save();
     }
 
     const newOrder = new Order({
