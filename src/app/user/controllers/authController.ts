@@ -4,6 +4,9 @@ import { generateToken } from '../helpers/tokenHelper';
 import { signUpSchema, signInSchema } from '../validations/authValidation';
 import User from '../models/User';
 import { verificationService } from '../../services/verification/verificationService';
+import crypto from 'crypto';
+import { sendResetPasswordEmail } from '../../services/email/emailService';
+import { IUser } from '../interfaces/IUser';
 
 // Sign-Up Controller
 export const signUp = async (req: Request, res: Response) => {
@@ -61,8 +64,8 @@ export const signIn = async (req: Request, res: Response) => {
 
     const { email, password } = req.body;
 
-    // Find user by email
-    const user = await User.findOne({ email });
+    // Find user by email and explicitly type it as IUser
+    const user = await User.findOne({ email }) as IUser | null;
     if (!user) {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
@@ -99,4 +102,108 @@ export const signIn = async (req: Request, res: Response) => {
 
 export const signOut = (req: Request, res: Response) => {
   res.status(200).json({ message: 'Signed out successfully' });
+};
+
+// Forgot Password Controller
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+
+    // Save reset token to user
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    await user.save();
+
+    // Create reset URL
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    // Send reset password email
+    try {
+      await sendResetPasswordEmail(user.email, resetUrl);
+      res.status(200).json({
+        message: 'Password reset link sent to email'
+      });
+    } catch (err) {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
+      await user.save();
+      
+      return res.status(500).json({
+        error: 'Error sending password reset email'
+      });
+    }
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({
+      error: 'Error processing forgot password request'
+    });
+  }
+};
+
+// Reset Password Controller
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        error: 'Token and new password are required'
+      });
+    }
+
+    // Hash the token from the URL
+    const hashedToken = crypto
+      .createHash('sha256')
+      .update(token)
+      .digest('hex');
+
+    // Find user with valid token and explicitly type it as IUser
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() }
+    }) as IUser | null;
+
+    if (!user) {
+      return res.status(400).json({
+        error: 'Invalid or expired reset token'
+      });
+    }
+
+    // Hash new password and save
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    // Generate new auth token
+    const authToken = generateToken(user._id.toString(), user.role);
+
+    res.status(200).json({
+      message: 'Password reset successful',
+      token: authToken
+    });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    res.status(500).json({
+      error: 'Error resetting password'
+    });
+  }
 };
