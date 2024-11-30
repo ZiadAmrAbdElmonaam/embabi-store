@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { verificationService } from '../../services/verification/verificationService';
-import { User } from '../../auth/models/user';
+import User from '../models/User';
 
 export const signup = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
 
     // Validate input
     if (!email || !password) {
@@ -33,6 +33,7 @@ export const signup = async (req: Request, res: Response) => {
     const user = new User({
       email,
       password: hashedPassword,
+      role: role || 'user', // Default to 'user' if no role specified
       verificationCode,
       verificationCodeExpires: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
       isVerified: false

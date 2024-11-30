@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { User } from '../../auth/models/user';
+import User from '../models/User';
+import { IUser } from '../interfaces/IUser';
 
 export const verifyEmail = async (req: Request, res: Response) => {
   try {
@@ -10,7 +11,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
       email,
       verificationCode: code,
       verificationCodeExpires: { $gt: new Date() }
-    });
+    }).lean() as IUser;
 
     if (!user) {
       return res.status(400).json({
@@ -19,21 +20,28 @@ export const verifyEmail = async (req: Request, res: Response) => {
     }
 
     // Update user verification status
-    user.isVerified = true;
-    user.verificationCode = undefined;
-    user.verificationCodeExpires = undefined;
-    await user.save();
+    await User.findByIdAndUpdate(user._id, {
+      isVerified: true,
+      $unset: { 
+        verificationCode: 1, 
+        verificationCodeExpires: 1 
+      }
+    });
 
     // Generate JWT token after successful verification
     const token = jwt.sign(
-      { userId: user._id },
+      { 
+        userId: user._id,
+        role: user.role
+      },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );
 
     res.status(200).json({
       message: 'Email verified successfully',
-      token
+      token,
+      role: user.role
     });
   } catch (error) {
     console.error('Verification error:', error);

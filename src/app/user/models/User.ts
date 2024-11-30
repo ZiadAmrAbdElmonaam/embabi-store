@@ -11,6 +11,12 @@ const userSchema = new mongoose.Schema<IUser>({
     type: String,
     required: true,
   },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user',
+    required: true
+  },
   isVerified: {
     type: Boolean,
     default: false,
@@ -23,6 +29,5 @@ const userSchema = new mongoose.Schema<IUser>({
   }
 }, { timestamps: true });
 
-const User = mongoose.model<IUser & mongoose.Document>('User', userSchema);
-
+const User = mongoose.model<IUser>('User', userSchema);
 export default User;
