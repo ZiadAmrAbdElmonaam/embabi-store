@@ -66,7 +66,7 @@ const startServer = async () => {
   try {
     await connectDB();
     app.listen(PORT, () => {
-      console.log(`Server is running on http://localhost:${PORT}`);
+      console.log(`Server is running on port ${PORT}`);
       console.log(`Test URL: http://localhost:${PORT}/test`);
       console.log(`Auth routes base URL: http://localhost:${PORT}/api/auth`);
     });
