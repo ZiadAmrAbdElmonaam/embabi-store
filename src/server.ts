@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:4200'
+  origin: 'http://localhost:4200'
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -66,7 +66,7 @@ const startServer = async () => {
   try {
     await connectDB();
     app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+      console.log(`Server is running on http://localhost:${PORT}`);
       console.log(`Test URL: http://localhost:${PORT}/test`);
       console.log(`Auth routes base URL: http://localhost:${PORT}/api/auth`);
     });
