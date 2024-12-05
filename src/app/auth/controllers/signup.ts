@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { verificationService } from '../../services/verification/verificationService';
-import { User } from '../models/user';
 import bcrypt from 'bcrypt';
+import User from '../../user/models/User';
 
 export const signup = async (req: Request, res: Response) => {
   try {
