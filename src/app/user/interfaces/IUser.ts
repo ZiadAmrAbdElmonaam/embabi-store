@@ -5,4 +5,11 @@ export interface IUser extends Document {
   email: string;
   password: string;
   role: 'user' | 'admin';
+  verificationCode?: string;
+  verificationCodeExpires?: Date;
+  isVerified: boolean;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }

@@ -3,6 +3,7 @@ import Order from '../models/order';
 import jwt from 'jsonwebtoken';
 import { createOrderSchema } from '../validations/orderValidation';
 import Product from '../../product/models/prodcut';
+import User from '../../user/models/User';
 
 export const createOrder = async (req: Request, res: Response) => {
   try {

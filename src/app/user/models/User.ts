@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { IUser } from '../interfaces/IUser';
 
 const userSchema = new mongoose.Schema<IUser>({
@@ -16,8 +16,17 @@ const userSchema = new mongoose.Schema<IUser>({
     enum: ['user', 'admin'],
     default: 'user',
   },
+  verificationCode: String,
+  verificationCodeExpires: Date,
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
+}, {
+  timestamps: true,
 });
 
-const User = mongoose.model<IUser & mongoose.Document>('User', userSchema);
-
+const User: Model<IUser> = mongoose.model<IUser>('User', userSchema);
 export default User;

@@ -24,17 +24,21 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/body-parser": "^1.19.5",
     "@types/mongoose": "^5.11.96",
+    "@types/nodemailer": "^6.4.17",
+    "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "embabi-store": "file:",
-    "express": "^4.21.0",
+    "express": "^4.21.1",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.6.3",
-    "multer": "^1.4.5-lts.1"
+    "mongoose": "^8.8.3",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.16"
   }
 }
