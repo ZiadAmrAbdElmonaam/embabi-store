@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { generateToken } from '../helpers/tokenHelper';
-import { signUpSchema, signInSchema } from '../validations/authValidation';
+import { signUpSchema, signInSchema, forgotPasswordSchema, resetPasswordSchema } from '../validations/authValidation';
 import User from '../models/User';
 import { verificationService } from '../../services/verification/verificationService';
 import crypto from 'crypto';
@@ -107,11 +107,13 @@ export const signOut = (req: Request, res: Response) => {
 // Forgot Password Controller
 export const forgotPassword = async (req: Request, res: Response) => {
   try {
-    const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
+    // Validate the request body
+    const { error } = forgotPasswordSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
     }
+
+    const { email } = req.body;
 
     // Find user by email
     const user = await User.findOne({ email });
@@ -119,26 +121,23 @@ export const forgotPassword = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const hashedToken = crypto
+    // Generate reset code
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedCode = crypto
       .createHash('sha256')
-      .update(resetToken)
+      .update(resetCode)
       .digest('hex');
 
-    // Save reset token to user
-    user.resetPasswordToken = hashedToken;
+    // Save reset code to user
+    user.resetPasswordToken = hashedCode;
     user.resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
     await user.save();
 
-    // Create reset URL
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-
     // Send reset password email
     try {
-      await sendResetPasswordEmail(user.email, resetUrl);
+      await sendResetPasswordEmail(user.email, resetCode);
       res.status(200).json({
-        message: 'Password reset link sent to email'
+        message: 'Password reset code sent to email'
       });
     } catch (err) {
       user.resetPasswordToken = undefined;
@@ -160,29 +159,30 @@ export const forgotPassword = async (req: Request, res: Response) => {
 // Reset Password Controller
 export const resetPassword = async (req: Request, res: Response) => {
   try {
-    const { token, newPassword } = req.body;
-
-    if (!token || !newPassword) {
-      return res.status(400).json({
-        error: 'Token and new password are required'
-      });
+    // Validate the request body
+    const { error } = resetPasswordSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
     }
 
-    // Hash the token from the URL
-    const hashedToken = crypto
+    const { email, code, newPassword } = req.body;
+
+    // Hash the code from the request
+    const hashedCode = crypto
       .createHash('sha256')
-      .update(token)
+      .update(code)
       .digest('hex');
 
-    // Find user with valid token and explicitly type it as IUser
+    // Find user with valid code
     const user = await User.findOne({
-      resetPasswordToken: hashedToken,
+      email,
+      resetPasswordToken: hashedCode,
       resetPasswordExpires: { $gt: Date.now() }
     }) as IUser | null;
 
     if (!user) {
       return res.status(400).json({
-        error: 'Invalid or expired reset token'
+        error: 'Invalid or expired reset code'
       });
     }
 
